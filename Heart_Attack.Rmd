@@ -1,0 +1,173 @@
+---
+title: "Heart_Attack"
+author: "Josu Lecuona"
+date: "2023-02-08"
+output: html_document
+---
+
+## En la edad hay una persona que tiene 640 anos y eso es imposible por lo que es un error, tambien podemos ver que hay varios NA. Cambiar el tratamiento no numerico en numerico. 
+```{r}
+library(readr)
+setwd("C:\\Users\\MI\\Desktop\\MASTER\\MCH I")
+data <- read.csv("heart_mod_2023-02-08.csv", sep = 'p')
+
+
+sapply(data, class)
+
+data$sex <- as.factor(data$sex)
+levels(data$sex) <- c("Female", "Male")
+
+data$cp <- as.factor(data$cp)
+levels(data$cp) <- c("Asymthomatic", "Atypical angina", "No angina", "Typical Angina")
+
+
+data$restecg <- as.factor(data$restecg)
+levels(data$restecg) <- c("Hypertrophy", "Normal", "Abnormalities")
+
+data$exang <- as.factor(data$exang)
+levels(data$exang) <- c("No", "Yes")
+
+
+data$fbs <- as.factor(data$fbs)
+levels(data$fbs) <- c("No", "Yes")
+
+data$slope <- as.factor(data$slope)
+levels(data$slope) <- c("Descending", "Flat", "Ascending")
+
+data$thal <- as.factor(data$thal)
+levels(data$thal) <- c("Fixed Defect", "Normal Flow", "Reversable Defect")
+
+data$target <- as.character(data$target)
+data$target[which(data$target=="11")] <- "1"
+data$target[which(data$target=="O")] <- "0"
+data$target <- as.factor(data$target)
+levels(data$target) <- c("Yes", "No")
+
+as.numeric(data$oldpeak)
+as.numeric(data$chol)
+
+
+
+
+```
+
+## Separating data
+
+
+```{r separating}
+data[,1] <- NULL
+type_class <- sapply(data,class)
+table(type_class)
+
+data$oldpeak <- gsub(",",".", data$oldpeak) ## Cambia en oldpeak los decimales de coma a punto
+
+data_num <- data[,type_class %in% c("integer", "numeric")]
+data_fac <- data[,type_class %in% c("factor")]
+
+```
+
+## Checking
+
+You can also embed plots, for example:
+
+```{r}
+as.integer(data$oldpeak)
+summary(data_num)
+
+tail(sort(data_num$age))
+data_num$year[data_num$age == 640] <- 64
+data_num$year[data_num$age == 630] <- 63
+data_num$year[data_num$age == 350] <- 35
+
+
+
+data_num$chol[data_num$chol == 5] <- NA
+data_num$trestbps[data_num$trestbps == 1540] <- 154
+
+mean_trestbps <- mean(data$trestbps, na.rm = TRUE)
+data_num$trestbps[is.na(data_num$trestbps)] <- mean_trestbps
+
+mean_chol <- mean(data$chol, na.rm = TRUE)
+data_num$chol[is.na(data_num$chol)] <- mean_chol
+
+mean_thalach <- mean(data$thalach, na.rm = TRUE)
+data_num$thalach[is.na(data_num$thalach)] <- mean_thalach
+
+mean_oldpeak <- mean(data$oldpeak, na.rm = TRUE)
+data_num$oldpeak[is.na(data_num$oldpeak)] <- mean_oldpeak
+```
+
+
+```{r}
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+```{bash}
+```
+
+
+```{r}
+###Hacer esto pero con edad
+plot(data_num$thalach, main = "Thalach", xlab = "Pacientes", ylab = "Thalach")
+hist(data_num$thalach, ,col = "blue")
+boxplot(data_num$year)
+
+par = (mfrow = c(1,2))
+
+shapiro.test(data_num$age)
+edad <- log(data_num$age)
+shapiro.test(edad)
+hist(edad)
+
+par = (mfrow = c(1,2))
+hist(data_num$thalach)
+boxplot(data_num$thalach, col = 4)
+
+data_num$year <- NULL
+
+
+par(mfrow = c(3, 2))
+for(i in 1:6) {
+  boxplot(data_num[i])
+}
+
+
+par(mfrow = c(4,2))
+
+for(i in 1:ncol(data_fac)){
+  probabilidad <- prop.table(table(data_fac[i]))
+  chisq <- chisq.test(probabilidad)
+  round_pvalue <- round(chisq$p.value, 11)
+  barplot(probabilidad, horiz = T,
+          main = paste0(colnames(data_fac[i], "- p.value",round_pvalue)))
+}
+
+
+
+
+```
+
+## Funcion para meter variable numerica y despues hay que centrar y normalizar, para centrar quitamos la media, y para normalizar le dividimo la deviacion estandar
+```{r}
+cen_esta <- function(var = NULL)
+{
+  mean_var <-  mean(var, na.rm = T)
+  var_cen <- var - mean(var)
+  var_sd <- sd(var, na.rm = T)
+  var_cen_sd <- var_cen / var_sd
+  return(var_cen_sd)
+}
+
+cen_age <- cen_sta(data$age)
+cen_age2 <- scale(data$age, center = T, scale =T)
+
+for(i in 1:6){
+  mean_var <-  mean(data_num[i], na.rm = T)
+  var_cen <- data_num[i] - mean(var)
+  var_sd <- sd(data_num[i], na.rm = T)
+  var_cen_sd <- var_cen / var_sd
+  return(var_cen_sd)
+  datos_centralizados <- cbind(datos_centralizados, var_cen_sd)
+}
+```
+
