@@ -95,11 +95,11 @@ data_num$thalach[is.na(data_num$thalach)] <- mean_thalach
 
 mean_oldpeak <- mean(data$oldpeak, na.rm = TRUE)
 data_num$oldpeak[is.na(data_num$oldpeak)] <- mean_oldpeak
-```
 
 
-```{r}
+
 ```
+
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
 ```{bash}
@@ -109,17 +109,16 @@ Note that the `echo = FALSE` parameter was added to the code chunk to prevent pr
 ```{r}
 ###Hacer esto pero con edad
 plot(data_num$thalach, main = "Thalach", xlab = "Pacientes", ylab = "Thalach")
-hist(data_num$thalach, ,col = "blue")
+hist(data_num$thalach, col = "blue")
 boxplot(data_num$year)
 
-par = (mfrow = c(1,2))
 
 shapiro.test(data_num$age)
 edad <- log(data_num$age)
 shapiro.test(edad)
 hist(edad)
 
-par = (mfrow = c(1,2))
+par(mfrow = c(1,2))
 hist(data_num$thalach)
 boxplot(data_num$thalach, col = 4)
 
@@ -127,28 +126,65 @@ data_num$year <- NULL
 
 
 par(mfrow = c(3, 2))
-for(i in 1:6) {
-  boxplot(data_num[i])
+
+for(i in 1:ncol(data_num)) {
+  boxplot(data_num[i],
+          main = names(data_num[i]),col = "blue")
 }
 
+pdf("migrafico2.pdf")
 
-par(mfrow = c(4,2))
+par(mfrow=c(2,4))
 
 for(i in 1:ncol(data_fac)){
   probabilidad <- prop.table(table(data_fac[i]))
-  chisq <- chisq.test(probabilidad)
-  round_pvalue <- round(chisq$p.value, 11)
-  barplot(probabilidad, horiz = T,
-          main = paste0(colnames(data_fac[i], "- p.value",round_pvalue)))
+  chisq <- chisq.test(table(data_fac[i]))
+  nombres_variable <- names(data_fac)[i]
+  co <- ifelse(chisq$p.value<exp(-15), "blue", "red")
+  barplot(probabilidad, horiz = TRUE,
+          main = paste0(nombres_variable, "- p.value", round(chisq$p.value,11)), col = co)
 }
 
+dev.off
 
 
 
 ```
-
-## Funcion para meter variable numerica y despues hay que centrar y normalizar, para centrar quitamos la media, y para normalizar le dividimo la deviacion estandar
+## Funcion para meter variable numerica y despues hay que centrar y normalizar, para centrar quitamos la media, y para normalizar le dividimos la desviacion estandar
 ```{r}
+
+mean_var <-  mean(data_num[1], na.rm = TRUE)
+var_cen <- data_num[i] - mean(var)
+var_sd <- sd(data_num[i], na.rm = T)
+var_cen_sd <- var_cen / var_sd
+return(var_cen_sd)
+datos_centralizados <- cbind(datos_centralizados, var_cen_sd)
+
+for(i in 1:6){  
+  mean_var <-  mean(data_num[i], na.rm = TRUE)
+  var_cen <- data_num[i] - mean(var)
+  var_sd <- sd(data_num[i], na.rm = TRUE)
+  var_cen_sd <- var_cen / var_sd
+  return(var_cen_sd)
+  datos_centralizados <- cbind(datos_centralizados, var_cen_sd)
+}
+
+data_num_normal <- function(x=NULL){
+  media=mean(x, na.rm=TRUE)
+  centrado=x-media
+  des_est <- sd(x,na.rm=TRUE)
+  datos_cent_normalizado=centrado/des_est
+  return(datos_cent_normalizado)
+}
+
+datos_centrados <- matrix(nrow=303,ncol=6)
+for(i in 1:5){
+  datos_centrados[,i] <- data_num_normal(data_num[,i])
+}
+
+datos_centrados <- as.data.frame(datos_centrados)
+data_num_total <- cbind(data_num, datos_centrados)
+```
 cen_esta <- function(var = NULL)
 {
   mean_var <-  mean(var, na.rm = T)
@@ -160,14 +196,3 @@ cen_esta <- function(var = NULL)
 
 cen_age <- cen_sta(data$age)
 cen_age2 <- scale(data$age, center = T, scale =T)
-
-for(i in 1:6){
-  mean_var <-  mean(data_num[i], na.rm = T)
-  var_cen <- data_num[i] - mean(var)
-  var_sd <- sd(data_num[i], na.rm = T)
-  var_cen_sd <- var_cen / var_sd
-  return(var_cen_sd)
-  datos_centralizados <- cbind(datos_centralizados, var_cen_sd)
-}
-```
-
