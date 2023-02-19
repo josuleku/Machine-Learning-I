@@ -196,7 +196,7 @@ pvalores_fac <- tail(sort(pvalores_fac))
 
 ```
 
-## He creado dos data frames vacios para que en el loop vaya metiendo los p valores y el respectivo nombre de la variable para despues unirlos y tener una tabl de los p valores de las variables respecto al target.
+## He creado dos data frames vacios para que en el loop vaya metiendo los p valores y el respectivo nombre de la variable para despues unirlos y tener una tabla de los p valores de las variables respecto al target.
 ```{r}
 
 pvalores <- data.frame()
