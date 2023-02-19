@@ -59,10 +59,12 @@ as.numeric(data$chol)
 
 ```{r separating}
 data[,1] <- NULL
-type_class <- sapply(data,class)
-table(type_class)
 
 data$oldpeak <- gsub(",",".", data$oldpeak) ## Cambia en oldpeak los decimales de coma a punto
+data$oldpeak <- as.numeric(data$oldpeak)
+
+type_class <- sapply(data,class)
+table(type_class)
 
 data_num <- data[,type_class %in% c("integer", "numeric")]
 data_fac <- data[,type_class %in% c("factor")]
@@ -73,13 +75,13 @@ data_fac <- data[,type_class %in% c("factor")]
 
 
 ```{r}
-as.integer(data$oldpeak)
+
 summary(data_num)
 
 tail(sort(data_num$age))
-data_num$year[data_num$age == 640] <- 64
-data_num$year[data_num$age == 630] <- 63
-data_num$year[data_num$age == 350] <- 35
+data_num$age[data_num$age == 640] <- 64
+data_num$age[data_num$age == 630] <- 63
+data_num$age[data_num$age == 350] <- 35
 
 
 
@@ -108,7 +110,7 @@ data_num$oldpeak[is.na(data_num$oldpeak)] <- mean_oldpeak
 
 plot(data_num$thalach, main = "Thalach", xlab = "Pacientes", ylab = "Thalach")
 hist(data_num$thalach, col = "blue")
-boxplot(data_num$year)
+
 
 
 shapiro.test(data_num$age)
@@ -120,7 +122,7 @@ par(mfrow = c(1,2))
 hist(data_num$thalach)
 boxplot(data_num$thalach, col = 4)
 
-data_num$year <- NULL
+
 
 
 par(mfrow = c(3, 2))
