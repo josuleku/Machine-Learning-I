@@ -173,7 +173,7 @@ data_num_total <- cbind(data_num, datos_centrados)
 
 ```
 
-##Calcular los p valores respecto de cada variable respecto al target.
+##Calcular los p valores de las variables numericas respecto al target.
 
 ```{r}
 pvalores <- data.frame()
