@@ -7,7 +7,7 @@ output: html_document
 
 
 
-## Primero de todo cargamos los datos y vemos de que clase son cada variable del dataset. Algunas de ellas los pasamos a factor, otras a numerico. Y hacemos algun cambio en la variable target, ya que se han cometido algunos errores en la creacion del dataset. 
+## Primero de todo cargamos los datos y vemos de que clase son cada variable del dataset. Algunas de ellas los pasamos a categorica, otras a numerica.  Y hacemos algun cambio en la variable target, ya que se han cometido algunos errores en la creacion del dataset. 
 
 ```{r}
 library(readr)
