@@ -5,7 +5,9 @@ date: "2023-02-08"
 output: html_document
 ---
 
-## En la edad hay una persona que tiene 640 anos y eso es imposible por lo que es un error, tambien podemos ver que hay varios NA. Cambiar el tratamiento no numerico en numerico.
+
+
+## Primero de todo cargamos los datos y vemos de que clase son cada variable del dataset. Algunas de ellas los pasamos a factor, otras a numerico. Y hacemos algun cambio en la variable target, ya que se han cometido algunos errores en la creacion del dataset. 
 
 ```{r}
 library(readr)
@@ -53,7 +55,7 @@ as.numeric(data$chol)
 
 ```
 
-## Separating data
+## Separating data, metemos en un dataset aquellas variables que son numericas (data_num) y en otro dataset aquellas variables que son de tipo factor (data_fac). 
 
 ```{r separating}
 data[,1] <- NULL
@@ -67,9 +69,8 @@ data_fac <- data[,type_class %in% c("factor")]
 
 ```
 
-## Checking
+## Realizamos un summary de las variables numericas para ver que cosas salen fuera de lo normal, despues procedemos a cambiar aquellas anomalias vistas a primera vista. En la edad hay una persona que tiene 640 anos y eso es imposible por lo que es un error, tambien podemos ver que hay varios NA. Los NA de cada variable los cambiamos por la media de aquella variable
 
-You can also embed plots, for example:
 
 ```{r}
 as.integer(data$oldpeak)
@@ -101,13 +102,10 @@ data_num$oldpeak[is.na(data_num$oldpeak)] <- mean_oldpeak
 
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
-
-```{bash}
-```
+## He creado dos loop para que me plotee por una parte las variables numericas en distintos boxplots con sus respectivos titulos, y por otro lado para que me plotee las variables categoricas en distintos barplots.
 
 ```{r}
-###Hacer esto pero con edad
+
 plot(data_num$thalach, main = "Thalach", xlab = "Pacientes", ylab = "Thalach")
 hist(data_num$thalach, col = "blue")
 boxplot(data_num$year)
@@ -151,7 +149,7 @@ dev.off
 
 ```
 
-## Funcion para meter variable numerica y despues hay que centrar y normalizar, para centrar quitamos la media, y para normalizar le dividimos la desviacion estandar
+## Generamos una funcion para despues meter las variable numericas para centrarlos y normalizarlos, para centrar quitamos la media, y para normalizar dividimos los datos normalizados por la desviacion estandar. Despues realizamos un loop para que lleve a cabo la funcion para las cinco variables numericas. 
 
 ```{r}
 
@@ -219,8 +217,6 @@ for(i in 6:10){
 pvalores_num <- cbind(pvalores, nombres_variable)
 pvalores_num <- as.matrix(pvalores_num)
 pvalores_num <- tail(sort(pvalores_num))
-
-boxplot(pvalores_fac[,1])
 
 ```
 
