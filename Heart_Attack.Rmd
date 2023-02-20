@@ -2,18 +2,18 @@
 title: "Heart_Attack"
 author: "Josu Lecuona"
 date: "2023-02-08"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
-
-
-## Primero de todo cargamos los datos y vemos de que clase es cada variable del dataset. Algunas de ellas las pasamos a categorica, otras a numerica.  Y hacemos algun cambio en la variable target, ya que se han cometido algunos errores en la creacion del dataset. 
+## Primero de todo cargamos los datos y vemos de que clase es cada variable del dataset. Algunas de ellas las pasamos a categorica, otras a numerica. Y hacemos algun cambio en la variable target, ya que se han cometido algunos errores en la creacion del dataset.
 
 ```{r}
 library(readr)
 library(tidyverse)
 library(broom)
-library(dply)
+library(dplyr)
 library(ggplot2)
 setwd("C:\\Users\\MI\\Desktop\\MASTER\\MCH I")
 data <- read.csv("heart_mod_2023-02-08.csv", sep = 'p')
@@ -58,7 +58,7 @@ as.numeric(data$chol)
 
 ```
 
-## Separating data, metemos en un dataset aquellas variables que son numericas (data_num) y en otro dataset aquellas variables que son de tipo factor (data_fac). 
+## Separating data, metemos en un dataset aquellas variables que son numericas (data_num) y en otro dataset aquellas variables que son de tipo factor (data_fac).
 
 ```{r separating}
 data[,1] <- NULL
@@ -75,7 +75,6 @@ data_fac <- data[,type_class %in% c("factor")]
 ```
 
 ## Realizamos un summary de las variables numericas para ver que cosas salen fuera de lo normal, despues procedemos a cambiar aquellas anomalias vistas a primera vista. En la edad hay una persona que tiene 640 anos y eso es imposible por lo que es un error, tambien podemos ver que hay varios NA. Los NA de cada variable los cambiamos por la media de aquella variable
-
 
 ```{r}
 
@@ -232,6 +231,7 @@ ggplot(pvalores_chi_ttest, aes(variable, pvalor)) + geom_point(aes(colour = vari
 ```
 
 ## Realizamos modelo binomial para sacar los p valores de las variables categoricas y numericas. Mediante una funcion, he sacado los pvalores de cada variable categorica, y despues he unido todos los pvalores en un dataframe.
+
 ```{r}
 
 ## Modelo binomial de las variables categoricas.
@@ -295,8 +295,3 @@ pvalores_num_glm <- pvalores_num_glm[with(pvalores_num_glm, order(pvalores_num_g
 ggplot(pvalores_num_glm, aes(Variable, pvalue)) + geom_point(aes(colour = Variable)) + labs(title="Pvalores de variables numericas mediante glm")
 
 ```
-
-
-
-
-
