@@ -7,12 +7,14 @@ output: html_document
 
 
 
-## Primero de todo cargamos los datos y vemos de que clase son cada variable del dataset. Algunas de ellas los pasamos a categorica, otras a numerica.  Y hacemos algun cambio en la variable target, ya que se han cometido algunos errores en la creacion del dataset. 
+## Primero de todo cargamos los datos y vemos de que clase es cada variable del dataset. Algunas de ellas las pasamos a categorica, otras a numerica.  Y hacemos algun cambio en la variable target, ya que se han cometido algunos errores en la creacion del dataset. 
 
 ```{r}
 library(readr)
 library(tidyverse)
 library(broom)
+library(dply)
+library(ggplot2)
 setwd("C:\\Users\\MI\\Desktop\\MASTER\\MCH I")
 data <- read.csv("heart_mod_2023-02-08.csv", sep = 'p')
 
@@ -152,7 +154,7 @@ dev.off
 
 ```
 
-## Generamos una funcion para despues meter las variable numericas para centrarlos y normalizarlos, para centrar quitamos la media, y para normalizar dividimos los datos normalizados por la desviacion estandar. Despues realizamos un loop para que lleve a cabo la funcion para las cinco variables numericas. 
+## Generamos una funcion para despues meter las variable numericas para centrarlos y normalizarlos, para centrar quitamos la media, y para normalizar dividimos los datos normalizados por la desviacion estandar. Despues realizamos un loop para que lleve a cabo la funcion para las cinco variables numericas.Utilizamos la funcion rename de la libreria dplyr para renombrar los nombre de las columnas nuevas.
 
 ```{r}
 
@@ -168,16 +170,17 @@ data_num_normal <- function(x=NULL){
 datos_centrados <- matrix(nrow=303,ncol=6)
 for(i in 1:ncol(data_num)){
   datos_centrados[,i] <- data_num_normal(data_num[,i])
-  
 }
 
+
 datos_centrados <- as.data.frame(datos_centrados)
+datos_centrados <- datos_centrados %>% rename (Age_corr = V1,Trestbps_corr = V2,Chol_corr = V3,Thalach_corr = V4,Oldpeak_corr = V5,Ca_corr = V6)
 data_num_total <- cbind(data_num, datos_centrados)
 
 
 ```
 
-##Calcular los p valores de las variables categoricas mediante el chi cuadrado, y los p valores de las numericas, mediante el t.test.
+##Calcular los p valores de las variables categoricas respecto a la variable target mediante el chi cuadrado, y los p valores de las numericas, mediante el t.test.
 
 ```{r}
 ##p valores categoricas mediante chi cuadrado.
@@ -218,36 +221,59 @@ colnames(pvalores_num) <- c("variable", "pvalor")
 ## Ahora unimos los dos data frames tanto de los p valores numericos como de los categoricos y los ordenamos de 
 ## mayor a menor significancia.
 
-pvalores_chi_t <- rbind(pvalores_fac, pvalores_num)
-pvalores_chi_t <- pvalores_chi_t[with(pvalores_chi_t, order(pvalores_chi_t$pvalor)), ]
+pvalores_chi_ttest <- rbind(pvalores_fac, pvalores_num)
+pvalores_chi_ttest <- pvalores_chi_ttest[with(pvalores_chi_ttest, order(pvalores_chi_ttest$pvalor)), ]
+
+
+plot(pvalores_chi_ttest$pvalor, xlab='Variables',
+     ylab='p-value')
+ggplot(pvalores_chi_ttest, aes(variable, pvalor)) + geom_point(aes(colour = variable)) + labs(title="Pvalores de variables numericas y categoricas")
 
 ```
 
-## Realizamos modelo binomial para sacar los p valores de las variables categoricas y numericas. He creado dos data frames vacios para que en el loop vaya metiendo los p valores y el respectivo nombre de la variable para despues unirlos y tener una tabla de los p valores de las variables respecto al target.
+## Realizamos modelo binomial para sacar los p valores de las variables categoricas y numericas. Mediante una funcion, he sacado los pvalores de cada variable categorica, y despues he unido todos los pvalores en un dataframe.
 ```{r}
 
 ## Modelo binomial de las variables categoricas.
 
-nombres_variable <- data.frame()
+
 pvalores <- data.frame()
 
 
-for(i in 1:ncol(data_fac)){
-  mod <- as.formula(sprintf("target ~ %s", data_fac[i]))
-  glmodel <- glm(formula=mod, data = data_fac, family=binomial(link="logit"))
+pvalor <- function(x=NULL){
+  glmodel <- glm(target~x, data = data_fac, family=binomial(link="logit"))
   modo_tidy <- tidy(glmodel)
-  pvalor <- (modo_tidy$p.value[-1])
-  pvalores <- rbind(pvalores, pvalor)
-  nombre <- paste(names(data_fac[i]))
-  nombres_variable <- (rbind(nombres_variable, nombre))
+  pvalores <- (modo_tidy$p.value[-1])
+  return(pvalores)
+  
 }
 
-pvalores_fac_mod <- data.frame( nombres_variable, pvalores)
-colnames(pvalores_fac_mod) <- c("pvalor", "variable")
-pvalores_num <- pvalores_num[with(pvalores_num, order(pvalores_num$pvalor)), ]
+pvalores_sex <-(pvalor(data_fac$sex))
+pvalores_cp <- (pvalor(data_fac$cp))
+pvalores_fbs <- (pvalor(data_fac$fbs))
+pvalores_restecg <- (pvalor(data_fac$restecg))
+pvalores_exang <- (pvalor(data_fac$exang))
+pvalores_slope <- (pvalor(data_fac$slope))
+pvalores_thal <- (pvalor(data_fac$thal))
+pvalores_target <- (pvalor(data_fac$target))
+pvalores_cat <- rbind(pvalores_sex,pvalores_cp,pvalores_fbs,pvalores_restecg,pvalores_exang,pvalores_slope,pvalores_thal,pvalores_target)
+
+##Ponemos N, en aquellas variables que solo tengan uno o dos p values, la unica variable que tiene tres p valores es el cp. Esto se ha hecho, porque al unir listas con diferente numero de columnas, se le anadian a las variables mas columnas para que de esta manera coincidiera con las columnas de la variable cp, que son tres. 
+pvalores_cat[1,2:3] <- NA
+pvalores_cat[3,2:3] <- NA
+pvalores_cat[4,3] <- NA
+pvalores_cat[5,2:3] <- NA
+pvalores_cat[6,3] <- NA
+pvalores_cat[7,3] <- NA
+pvalores_cat[8,2:3] <- NA
+pvalores_cat_glm <- as.data.frame(pvalores_cat)
+
+##Ordenamos los pvalores, del mas significantes al menos.
+pvalores_cat_glm <- pvalores_cat_glm[with(pvalores_cat_glm, order(pvalores_cat_glm$V1)), ]
+ggplot(pvalores_cat_glm , aes(rownames(pvalores_cat_glm),V1)) + geom_point(aes(colour = rownames(pvalores_cat_glm))) + labs(title = "Pvalores de las categoricas mediante glm",x = "Variable", y="pvalue")
 
 
-## Modelo binomial de las variables numericas.
+## Modelo binomial de las variables numericas, para conseguir sus respectivos pvalues respecto a la variable target.
 pvalores <- data.frame()
 nombres_variable <- data.frame()
 n <- 1
@@ -263,10 +289,10 @@ for(i in 7:12){
   n <- n+1
 }
 
-pvalores_num_mod <- data.frame(pvalores, nombres_variable)
-colnames(pvalores_num_mod) <- c("pvalor", "variable")
-pvalores_num <- pvalores_num[with(pvalores_num, order(pvalores_num$pvalor)), ]
-
+pvalores_num_glm <- data.frame(nombres_variable, pvalores)
+colnames(pvalores_num_glm) <- c("Variable", "pvalue")
+pvalores_num_glm <- pvalores_num_glm[with(pvalores_num_glm, order(pvalores_num_glm$pvalue)), ]
+ggplot(pvalores_num_glm, aes(Variable, pvalue)) + geom_point(aes(colour = Variable)) + labs(title="Pvalores de variables numericas mediante glm")
 
 ```
 
